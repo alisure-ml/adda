@@ -2,7 +2,7 @@ import os
 import tensorflow as tf
 
 from Tools import Tools
-from Data import MNIST, SVHN, PreProcessing
+from Data import MNIST, SVHN, CCF3, NWPU3, PreProcessing
 from Net import LeNet
 from Adversary import Adversary
 
@@ -110,16 +110,15 @@ class Runner:
                 # 处理数据：将源域数据和目标域数据处理成一样
                 s_x = PreProcessing()(s_x, self.net, one_image=False)
                 t_x = PreProcessing()(t_x, self.net, one_image=False)
-
                 # run get loss
                 mapping_loss, adversary_loss, _, _ = self.sess.run(
-                    [self.mapping_loss, self.adversary_loss, self.train_mapping_op, self.train_adversary_op],
-                    feed_dict={self.s_x: s_x, self.s_labels: s_labels, self.t_x: t_x, self.t_labels: t_labels})
-
+                    [self.mapping_loss, self.adversary_loss,self.train_mapping_op, self.train_adversary_op],
+                    feed_dict={self.s_x: s_x, self.s_labels: s_labels,self.t_x: t_x, self.t_labels: t_labels})
                 # print loss
-                if step % 100 == 0:
+                if step % self.display_freq == 0:
                     Tools.print_info("{}/{} mapping loss is {}, adversary loss is {}".format(
                         step, self.source_data.number_train, mapping_loss, adversary_loss))
+                    pass
                 # stat loss
                 total_mapping_loss += mapping_loss
                 total_adversary_loss += adversary_loss
@@ -132,22 +131,19 @@ class Runner:
                 t_restorer.save(self.sess, os.path.join(self.save_model_path, "model_epoch_{}".format(epoch)))
             Tools.print_info("epoch {} over".format(epoch))
             pass
-
-        # end
-        t_restorer.save(self.sess, os.path.join(self.save_model_path, "model_epoch_{}".format("end")))
         pass
 
     pass
 
 
 def run_mnist_to_svhn():
-    batch_size = 128
+    batch_size = 64
     s_data = MNIST(batch_size, num_classes=10, data_path="data/mnist")
     t_data = SVHN(batch_size, num_classes=10, data_path="data/svhn")
     net = LeNet(image_size=s_data.image_size, num_channel=s_data.num_channel)
 
     runner = Runner(source_data=s_data, target_data=t_data, net=net,
-                    epoch_number=2, batch_size=batch_size, display_freq=1, save_model_freq=1,
+                    epoch_number=10, batch_size=batch_size, display_freq=100, save_model_freq=2,
                     save_model_path=Tools.new_dir("model/lenet_adda/mnist_to_svhn"), learning_rate=1e-4,
                     weights_path="model/lenet/mnist", adversary_layers=[500, 500])
     runner.train()
@@ -155,19 +151,48 @@ def run_mnist_to_svhn():
 
 
 def run_svhn_to_mnist():
-    batch_size = 128
+    batch_size = 64
     s_data = SVHN(batch_size, num_classes=10, data_path="data/svhn")
     t_data = MNIST(batch_size, num_classes=10, data_path="data/mnist")
     net = LeNet(image_size=s_data.image_size, num_channel=s_data.num_channel)
 
     runner = Runner(source_data=s_data, target_data=t_data, net=net,
-                    epoch_number=2, batch_size=batch_size, display_freq=1, save_model_freq=1,
+                    epoch_number=10, batch_size=batch_size, display_freq=100, save_model_freq=1,
                     save_model_path=Tools.new_dir("model/lenet_adda/svhn_to_mnist"), learning_rate=1e-4,
                     weights_path="model/lenet/svhn", adversary_layers=[500, 500])
     runner.train()
     pass
 
+
+def run_ccf3_to_nwpu3():
+    batch_size = 64
+    s_data = CCF3(batch_size, num_classes=4, data_path="data/ccf3")
+    t_data = NWPU3(batch_size, num_classes=4, data_path="data/nwpu3")
+    net = LeNet(image_size=s_data.image_size, num_channel=s_data.num_channel)
+
+    runner = Runner(source_data=s_data, target_data=t_data, net=net,
+                    epoch_number=20, batch_size=batch_size, display_freq=10, save_model_freq=1,
+                    save_model_path=Tools.new_dir("model/lenet_adda/ccf3_to_nwpu3"), learning_rate=1e-4,
+                    weights_path="model/lenet/ccf3", adversary_layers=[500, 500])
+    runner.train()
+    pass
+
+
+def run_nwpu3_to_ccf3():
+    batch_size = 64
+    s_data = NWPU3(batch_size, num_classes=3, data_path="data/nwpu3")
+    t_data = CCF3(batch_size, num_classes=3, data_path="data/ccf3")
+    net = LeNet(image_size=s_data.image_size, num_channel=s_data.num_channel)
+
+    runner = Runner(source_data=s_data, target_data=t_data, net=net,
+                    epoch_number=3, batch_size=batch_size, display_freq=10, save_model_freq=1,
+                    save_model_path=Tools.new_dir("model/lenet_adda/nwpu3_to_ccf3"), learning_rate=1e-4,
+                    weights_path="model/lenet/nwpu3", adversary_layers=[500, 500])
+    runner.train()
+    pass
+
 if __name__ == '__main__':
     # run_mnist_to_svhn()
-    run_svhn_to_mnist()
+    # run_svhn_to_mnist()
+    run_ccf3_to_nwpu3()
     pass

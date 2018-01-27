@@ -22,3 +22,5 @@ class Adversary:
                 net = slim.fully_connected(net, dim)
             net = slim.fully_connected(net, 2, activation_fn=None)
         return net
+
+    pass

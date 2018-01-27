@@ -32,7 +32,7 @@ class LeNet:
                 layers['pool2'] = net
 
                 net = tf.contrib.layers.flatten(net)
-                net = slim.fully_connected(net, 500, scope='fc3')
+                net = slim.fully_connected(net, 100, scope='fc3')
                 layers['fc3'] = net
                 net = slim.fully_connected(net, 10, activation_fn=None, scope='fc4')
                 layers['fc4'] = net

@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from Data import MNIST, SVHN, PreProcessing
+from Data import MNIST, SVHN,CCF3,NWPU3, PreProcessing
 from Net import LeNet
 import tensorflow as tf
 from Tools import Tools
@@ -60,14 +60,16 @@ class Runner:
             pass
         # print result
         Tools.print_info("Class accuracy:")
-        Tools.print_info("  ".join(["{:.3f}".format(class_correct[i] / x) for i, x in enumerate(class_counter)]))
+        Tools.print_info("  ".join(["{:.3f}({}/{})".format(class_correct[i] / x, class_correct[i], x)
+                                    for i, x in enumerate(class_counter)]))
         Tools.print_info("Overall accuracy {}".format(np.sum(class_correct) / np.sum(class_counter)))
         pass
+
     pass
 
 
 def run_shvn_on_mnist():
-    batch_size = 128
+    batch_size = 64
     # 注意：需要参数
     s_image_size = 28
     s_num_channel = 1
@@ -81,7 +83,7 @@ def run_shvn_on_mnist():
 
 
 def run_mnist_on_shvn():
-    batch_size = 128
+    batch_size = 64
     # 注意：需要参数
     s_image_size = 32
     s_num_channel = 3
@@ -94,52 +96,37 @@ def run_mnist_on_shvn():
     pass
 
 
-def run_mnist_on_shvn_no_a():
-    batch_size = 128
+def run_nwpu3_on_ccf3():
+    batch_size = 64
     # 注意：需要参数
     s_image_size = 32
     s_num_channel = 3
-    t_data = MNIST(batch_size, num_classes=10, data_path="data/mnist")
+    t_data = NWPU3(batch_size, num_classes=4, data_path="data/nwpu3")
     net = LeNet(image_size=s_image_size, num_channel=s_num_channel)
 
     runner = Runner(data=t_data, net=net, s_num_channel=s_num_channel, s_image_size=s_image_size,
-                    batch_size=batch_size, weights_path="model/lenet/svhn")
+                    batch_size=batch_size, weights_path="model/lenet_adda/ccf3_to_nwpu3")
     runner.eval()
     pass
 
 
-def run_mnist_on_mnist():
-    batch_size = 128
+def run_ccf3_on_nwpu3():
+    batch_size = 64
     # 注意：需要参数
-    s_image_size = 28
-    s_num_channel = 1
-    t_data = MNIST(batch_size, num_classes=10, data_path="data/mnist")
-    net = LeNet(image_size=s_image_size, num_channel=s_num_channel)
-
-    runner = Runner(data=t_data, net=net, s_num_channel=s_num_channel, s_image_size=s_image_size,
-                    batch_size=batch_size, weights_path="model/lenet/mnist")
-    runner.eval()
-    pass
-
-
-def run_shvn_on_shvn():
-    batch_size = 128
-    # 注意：需要参数
-    s_image_size = 32
+    s_image_size = 256
     s_num_channel = 3
-    t_data = SVHN(batch_size, num_classes=10, data_path="data/svhn")
+    t_data = CCF3(batch_size, num_classes=4, data_path="data/ccf3")
     net = LeNet(image_size=s_image_size, num_channel=s_num_channel)
 
     runner = Runner(data=t_data, net=net, s_num_channel=s_num_channel, s_image_size=s_image_size,
-                    batch_size=batch_size, weights_path="model/lenet_adda/svhn_to_mnist")
+                    batch_size=batch_size, weights_path="model/lenet_adda/nwpu3_to_ccf3")
     runner.eval()
     pass
+
 
 if __name__ == '__main__':
     # run_shvn_on_mnist()
-    run_mnist_on_shvn()
-    # run_mnist_on_mnist()
-    # run_shvn_on_shvn()
-    # run_mnist_on_shvn_no_a()
+    # run_mnist_on_shvn()
+    run_nwpu3_on_ccf3()
     pass
 
